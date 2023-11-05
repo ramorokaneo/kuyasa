@@ -5,6 +5,7 @@ import Login from './Components/Login';
 import Landing from './Components/Landing';
 import Register from './Components/Register';
 import Home from './Components/Home';
+import AiTutor from './Components/AiTutor';
 
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/register" element={<Register />} />
           <Route path="/home" element={<Home />} />
-                
+          <Route path="/ai" element={<AiTutor />} />    
         </Routes>
       </div>
     </Router>
