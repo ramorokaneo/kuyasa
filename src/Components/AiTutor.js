@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Footer from './Footer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -19,12 +19,34 @@ function AiTutor() {
     textDecoration: 'none',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
   };
 
   const [messages, setMessages] = useState([
     { text: "AI Bot: Hi! How can I help you today?", isUser: false },
   ]);
   const [userInput, setUserInput] = useState('');
+  const [recording, setRecording] = useState(false);
+  const [audioURL, setAudioURL] = useState('');
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    if (recording) {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setUserInput(transcript);
+        recognition.stop();
+        setAudioURL(URL.createObjectURL(event.results[0][0].blob));
+      };
+
+      recognition.start();
+    }
+  }, [recording]);
 
   const handleUserInput = (e) => {
     setUserInput(e.target.value);
@@ -42,6 +64,35 @@ function AiTutor() {
         { text: "AI Bot: I'm sorry, I don't have that information yet.", isUser: false },
       ]);
       setUserInput('');
+    }
+  };
+
+  const startRecording = () => {
+    setRecording(true);
+  };
+
+  const stopRecording = () => {
+    setRecording(false);
+  };
+
+  const sendRecording = () => {
+    if (userInput.trim() !== '') {
+      setMessages([
+        ...messages,
+        { text: `User (Voice): [Voice Recording]`, isUser: true },
+      ]);
+      // Simulate AI response here, replace with actual chatbot logic
+      setMessages([
+        ...messages,
+        { text: "AI Bot: Processing voice message...", isUser: false },
+      ]);
+      setUserInput('');
+    }
+  };
+
+  const playRecording = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
     }
   };
 
@@ -86,15 +137,24 @@ function AiTutor() {
             ))}
           </div>
           <div className="user-input">
+            {recording ? (
+              <button onClick={stopRecording} style={buttonStyle}>Stop Recording</button>
+            ) : (
+              <button onClick={startRecording} style={buttonStyle}>Start Recording</button>
+            )}
+            <button onClick={playRecording} style={buttonStyle}>Play Recording</button>
             <input
               type="text"
               placeholder="Type your message..."
               value={userInput}
               onChange={handleUserInput}
             />
-            <button onClick={handleSendMessage}>Send</button>
+            {!recording && (
+              <button onClick={sendRecording} style={buttonStyle}>Send Recording</button>
+            )}
           </div>
         </div>
+        <audio ref={audioRef} src={audioURL} controls style={{ display: 'none' }} />
       </main>
       <Footer />
     </div>
@@ -102,6 +162,11 @@ function AiTutor() {
 }
 
 export default AiTutor;
+
+
+
+
+
 
 
 
